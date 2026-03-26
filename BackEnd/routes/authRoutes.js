@@ -1,6 +1,6 @@
 // authroute.jsx
 import express from "express";
-import { registerUser, verifyOTP, login } from "../controllers/authController.js";
+import { registerUser, login } from "../controllers/authController.js";
 import { protect } from "../middlewares/authMiddleware.js";
 import { updateUser } from "../controllers/authController.js";
 
@@ -8,7 +8,6 @@ console.log("AUTH ROUTES FILE LOADED ✅");
 const router = express.Router();
 
 router.post("/register", registerUser);
-router.post("/verifyOtp", verifyOTP);
 router.post("/login", login);
 
 router.put(
