@@ -32,7 +32,7 @@ const Register = () => {
         password: form.password,
       });
 
-      navigate("/verifyOtp", { state: { email: form.email } });
+      navigate("/login", { state: { email: form.email } });
     } catch (requestError) {
       setError(requestError.response?.data?.message || "Registration failed");
     } finally {

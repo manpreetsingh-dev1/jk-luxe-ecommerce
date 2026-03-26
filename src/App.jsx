@@ -14,7 +14,6 @@ const Contact = lazy(() => import("./pages/Contact"));
 const Cart = lazy(() => import("./pages/Cart"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
-const VerifyOtp = lazy(() => import("./pages/verifyOtp"));
 const Checkout = lazy(() => import("./pages/Checkout"));
 const OrderDetails = lazy(() => import("./pages/OrderDetails"));
 const OrderSuccess = lazy(() => import("./pages/OrderSuccess"));
@@ -54,7 +53,6 @@ function App() {
             <Route path="contact" element={<Contact />} />
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
-            <Route path="verifyOtp" element={<VerifyOtp />} />
             <Route path="ordersuccess" element={<OrderSuccess />} />
 
             <Route element={<PrivateRoute />}>
