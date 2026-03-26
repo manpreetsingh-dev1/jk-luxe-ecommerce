@@ -12,11 +12,12 @@ import cartRoutes from "./routes/cartRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 
-dotenv.config();
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const clientDistPath = path.resolve(__dirname, "../dist");
+const envPath = path.resolve(__dirname, ".env");
+
+dotenv.config({ path: envPath });
 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
@@ -36,15 +37,23 @@ if (process.env.NODE_ENV === "production") {
 
 app.use(errorHandler);
 
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
+const startServer = async () => {
+  try {
+    if (!process.env.MONGO_URI) {
+      throw new Error("MONGO_URI is not configured");
+    }
+
+    await mongoose.connect(process.env.MONGO_URI);
+
     const port = process.env.PORT || 5000;
     console.log("MongoDB connected");
     app.listen(port, () => {
       console.log(`Server running on port ${port}`);
     });
-  })
-  .catch((error) => {
-    console.log("DB ERROR:", error);
-  });
+  } catch (error) {
+    console.error("Server startup failed:", error);
+    process.exit(1);
+  }
+};
+
+startServer();
