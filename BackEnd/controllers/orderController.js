@@ -1,7 +1,6 @@
-// controllers/orderController.js
-import Order from "../Models/orderModel.js";
-import Cart from "../Models/cartModel.js";
-import CartProduct from "../Models/cartProductModel.js";
+import Cart from "../models/cartModel.js";
+import CartProduct from "../models/cartProductModel.js";
+import Order from "../models/orderModel.js";
 
 export const createOrder = async (req, res) => {
   try {
@@ -9,10 +8,7 @@ export const createOrder = async (req, res) => {
     const requesterId = req.user?._id?.toString();
 
     if (!userId || !items || items.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "userId and items required",
-      });
+      return res.status(400).json({ success: false, message: "userId and items required" });
     }
 
     if (requesterId !== userId && req.user.role !== "admin") {
@@ -22,7 +18,6 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    // 🔥 Format items properly
     const formattedItems = items.map((item) => ({
       product: item.productId,
       name: item.name,
@@ -31,11 +26,7 @@ export const createOrder = async (req, res) => {
       quantity: item.quantity,
     }));
 
-    // calculate total
-    const total = formattedItems.reduce(
-      (acc, item) => acc + item.price * item.quantity,
-      0
-    );
+    const total = formattedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     const order = await Order.create({
       user: userId,
@@ -44,25 +35,17 @@ export const createOrder = async (req, res) => {
       total,
     });
 
-    // clear cart if needed
     if (source === "cart") {
       await Cart.findOneAndDelete({ user: userId });
       await CartProduct.deleteMany({ user: userId });
     }
 
-    res.status(201).json({
-      success: true,
-      order,
-    });
-  } catch (err) {
-    console.error("ORDER ERROR:", err);
-    res.status(500).json({
-      success: false,
-      message: err.message,
-    });
+    return res.status(201).json({ success: true, order });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
-// get orders(user)
+
 export const getUserOrders = async (req, res) => {
   try {
     if (req.user._id.toString() !== req.params.userId && req.user.role !== "admin") {
@@ -74,9 +57,9 @@ export const getUserOrders = async (req, res) => {
       .populate("items.product")
       .sort({ createdAt: -1 });
 
-    res.json({ success: true, orders });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    return res.json({ success: true, orders });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -92,8 +75,8 @@ export const getSingleOrder = async (req, res) => {
       return res.status(403).json({ success: false, message: "Forbidden" });
     }
 
-    res.json({ success: true, order });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    return res.json({ success: true, order });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 };

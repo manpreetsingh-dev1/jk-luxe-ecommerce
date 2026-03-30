@@ -120,7 +120,6 @@ export const CartProvider = ({ children }) => {
       try {
         const res = await api.get("/cart");
         const normalized2 = normalizeCart(res.data);
-        console.log("normalized cart fetched", normalized2);
         setCart(normalized2);
       } catch (err) {
         console.error("fetch cart error", err.response ? err.response.data : err.message, err);
