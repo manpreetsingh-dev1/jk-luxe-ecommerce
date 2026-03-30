@@ -10,8 +10,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "npm --prefix backend start",
-    "postinstall": "npm --prefix backend install",
+    
     "lint": "eslint ."
   },
   "dependencies": {
