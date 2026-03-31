@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import Navbar from "../../../components/nav";
+import Navbar from "../../../components/Nav";
 
 const StoreFooter = () => (
   <footer className="border-t border-white/60 bg-stone-950 px-6 py-12 text-stone-200">
