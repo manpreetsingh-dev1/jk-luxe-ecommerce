@@ -1,4 +1,4 @@
-import { MapPin, Package, Save, UserCircle2 } from "lucide-react";
+import { MapPin, Package, Save} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";

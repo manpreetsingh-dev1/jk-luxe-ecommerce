@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import ProfilePage from "./profilePage";
+import ProfilePage from "./ProfilePage";
 
 const Addresses = () => {
   const navigate = useNavigate();
