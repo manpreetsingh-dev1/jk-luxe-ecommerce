@@ -1,6 +1,6 @@
 import { Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import api from "../api/axios";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
@@ -12,27 +12,50 @@ const priceOptions = [
   { label: "Under Rs. 5000", value: "5000" },
 ];
 
+const SkeletonCard = () => (
+  <article className="overflow-hidden rounded-3xl border border-white/60 bg-white/80 shadow-[0_25px_80px_rgba(23,19,18,0.08)]">
+    <div className="h-110 bg-stone-200 animate-pulse" />
+    <div className="space-y-4 p-6">
+      <div className="h-4 bg-stone-200 rounded animate-pulse" />
+      <div className="h-6 bg-stone-200 rounded w-3/4 animate-pulse" />
+      <div className="h-4 bg-stone-200 rounded w-full animate-pulse" />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="h-10 bg-stone-200 rounded-full animate-pulse" />
+        <div className="h-10 bg-stone-200 rounded-full animate-pulse" />
+      </div>
+    </div>
+  </article>
+);
+
 const Shop = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { category: routeCategory } = useParams();
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedPrice, setSelectedPrice] = useState("all");
 
   useEffect(() => {
+    setLoading(true);
     api
-      .get("/products")
+      .get("/products?limit=100")
       .then((response) => setProducts(response.data.products || []))
-      .catch((error) => console.error("Failed to fetch products:", error));
+      .catch((error) => console.error("Failed to fetch products:", error))
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    setSelectedCategory(searchParams.get("category") || "all");
-  }, [location.search]);
+    if (routeCategory) {
+      setSelectedCategory(routeCategory.toLowerCase());
+    } else {
+      const searchParams = new URLSearchParams(location.search);
+      setSelectedCategory(searchParams.get("category") || "all");
+    }
+  }, [routeCategory, location.search]);
 
   const categories = useMemo(() => {
     const values = Array.from(new Set(products.map((product) => product.category).filter(Boolean)));
@@ -117,59 +140,67 @@ const Shop = () => {
         </section>
 
         <section className="grid gap-10 sm:grid-cols-2 xl:grid-cols-3">
-          {filteredProducts.map((product) => (
-            <article
-              key={product._id}
-              className="group overflow-hidden rounded-3xl border border-white/60 bg-white/80 shadow-[0_25px_80px_rgba(23,19,18,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_35px_100px_rgba(23,19,18,0.12)]"
-            >
-              <button type="button" onClick={() => navigate(`/product/${product._id}`)} className="block w-full text-left">
-                <div className="overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="h-110 w-full object-cover object-top transition duration-700 group-hover:scale-106"
-                  />
-                </div>
-              </button>
-              <div className="space-y-4 p-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-amber-700">{product.category || "Collection"}</p>
-                    <h2 className="mt-2 font-['Sora'] text-xl font-semibold text-stone-950">{product.name}</h2>
+          {loading ? (
+            [...Array(9)].map((_, index) => <SkeletonCard key={index} />)
+          ) : filteredProducts.length === 0 ? (
+            <div className="col-span-full text-center py-16">
+              <p className="text-stone-600 text-lg">No products found. Try adjusting your filters.</p>
+            </div>
+          ) : (
+            filteredProducts.map((product) => (
+              <article
+                key={product._id}
+                className="group overflow-hidden rounded-3xl border border-white/60 bg-white/80 shadow-[0_25px_80px_rgba(23,19,18,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_35px_100px_rgba(23,19,18,0.12)]"
+              >
+                <button type="button" onClick={() => navigate(`/product/${product._id}`)} className="block w-full text-left">
+                  <div className="overflow-hidden">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="h-110 w-full object-cover object-top transition duration-700 group-hover:scale-106"
+                    />
                   </div>
-                  <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900">
-                    Rs. {product.price}
-                  </span>
-                </div>
-                <p className="line-clamp-2 text-sm leading-7 text-stone-600">
-                  {product.description || "Refined finishes, comfortable wear, and signature premium detailing."}
-                </p>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/product/${product._id}`)}
-                    className="rounded-full border border-stone-300 px-4 py-3 text-sm font-semibold text-stone-900 transition hover:bg-stone-100"
-                  >
-                    View Details
-                  </button>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      if (!isAuthenticated) {
-                        navigate("/login");
-                        return;
-                      }
+                </button>
+                <div className="space-y-4 p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-amber-700">{product.category || "Collection"}</p>
+                      <h2 className="mt-2 font-['Sora'] text-xl font-semibold text-stone-950">{product.name}</h2>
+                    </div>
+                    <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900">
+                      Rs. {product.price}
+                    </span>
+                  </div>
+                  <p className="line-clamp-2 text-sm leading-7 text-stone-600">
+                    {product.description || "Refined finishes, comfortable wear, and signature premium detailing."}
+                  </p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/product/${product._id}`)}
+                      className="rounded-full border border-stone-300 px-4 py-3 text-sm font-semibold text-stone-900 transition hover:bg-stone-100"
+                    >
+                      View Details
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!isAuthenticated) {
+                          navigate("/login");
+                          return;
+                        }
 
-                      await addToCart(product);
-                    }}
-                    className="rounded-full bg-stone-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-amber-800"
-                  >
-                    Add to Cart
-                  </button>
+                        await addToCart(product);
+                      }}
+                      className="rounded-full bg-stone-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-amber-800"
+                    >
+                      Add to Cart
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            ))
+          )}
         </section>
       </div>
     </div>

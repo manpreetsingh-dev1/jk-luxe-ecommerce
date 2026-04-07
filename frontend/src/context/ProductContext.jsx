@@ -7,19 +7,29 @@ export const ProductsContext = createContext();
 
 export const ProductsProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const { user } = useAuth();
   const { addToCart } = useCart();
 
   useEffect(() => {
-    api
-      .get("/products")
-      .then((response) => setProducts(response.data.products || []))
-      .catch((error) => console.error("Products fetch error:", error));
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get("/products?limit=100");
+        setProducts(response.data.products || []);
+      } catch (error) {
+        console.error("Products fetch error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
   }, []);
 
   return (
-    <ProductsContext.Provider value={{ products, setProducts, message, setMessage, addToCart, user }}>
+    <ProductsContext.Provider value={{ products, setProducts, loading, message, setMessage, addToCart, user }}>
       {children}
     </ProductsContext.Provider>
   );

@@ -27,14 +27,19 @@ export const createProduct = async (req, res) => {
 
 export const getProducts = async (req, res) => {
   try {
-    const { category } = req.query;
+    const { category, limit = 100, skip = 0 } = req.query;
     const filter = {};
 
     if (category) {
       filter.category = category.toLowerCase();
     }
 
-    const products = await Product.find(filter).sort({ createdAt: -1 });
+    const products = await Product.find(filter)
+      .lean()
+      .sort({ createdAt: -1 })
+      .limit(Number(limit))
+      .skip(Number(skip));
+
     return res.json({ success: true, products });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });

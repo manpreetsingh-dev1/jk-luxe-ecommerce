@@ -25,15 +25,26 @@ const categories = [
   },
 ];
 
+const SkeletonCard = () => (
+  <button
+    type="button"
+    disabled
+    className="group relative overflow-hidden rounded-4xl text-left shadow-[0_30px_90px_rgba(23,19,18,0.12)] h-80 bg-stone-200 animate-pulse"
+  />
+);
+
 const Home = () => {
   const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     api
-      .get("/products")
-      .then((response) => setFeaturedProducts((response.data.products || []).slice(0, 8)))
-      .catch((error) => console.error("Failed to load products:", error));
+      .get("/products?limit=8")
+      .then((response) => setFeaturedProducts(response.data.products || []))
+      .catch((error) => console.error("Failed to load products:", error))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -89,7 +100,7 @@ const Home = () => {
               <button
                 key={category.id}
                 type="button"
-                onClick={() => navigate(`/shop?category=${category.id}`)}
+                onClick={() => navigate(`/shop/${category.id}`)}
                 className="group relative overflow-hidden rounded-4xl text-left shadow-[0_30px_90px_rgba(23,19,18,0.12)]"
               >
                 <img
@@ -117,37 +128,52 @@ const Home = () => {
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-            {featuredProducts.map((product) => (
-              <button
-                key={product._id}
-                type="button"
-                onClick={() => navigate(`/product/${product._id}`)}
-                className="group overflow-hidden rounded-4xl border border-white/60 bg-white/80 text-left shadow-[0_25px_80px_rgba(23,19,18,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_35px_90px_rgba(23,19,18,0.12)]"
-              >
-                <div className="overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="h-80 w-full object-cover transition duration-700 group-hover:scale-105"
-                  />
-                </div>
-                <div className="space-y-3 p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <h3 className="font-['Sora'] text-lg font-semibold text-stone-950">{product.name}</h3>
-                    <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900">
-                      Rs. {product.price}
+            {loading ? (
+              [...Array(8)].map((_, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  disabled
+                  className="overflow-hidden rounded-4xl border border-white/60 bg-stone-200 shadow-[0_25px_80px_rgba(23,19,18,0.08)] animate-pulse h-96"
+                />
+              ))
+            ) : featuredProducts.length === 0 ? (
+              <div className="col-span-full text-center py-16">
+                <p className="text-stone-600 text-lg">No products available yet.</p>
+              </div>
+            ) : (
+              featuredProducts.map((product) => (
+                <button
+                  key={product._id}
+                  type="button"
+                  onClick={() => navigate(`/product/${product._id}`)}
+                  className="group overflow-hidden rounded-4xl border border-white/60 bg-white/80 text-left shadow-[0_25px_80px_rgba(23,19,18,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_35px_90px_rgba(23,19,18,0.12)]"
+                >
+                  <div className="overflow-hidden">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="h-80 w-full object-cover transition duration-700 group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="space-y-3 p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <h3 className="font-['Sora'] text-lg font-semibold text-stone-950">{product.name}</h3>
+                      <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900">
+                        Rs. {product.price}
+                      </span>
+                    </div>
+                    <p className="line-clamp-2 text-sm leading-6 text-stone-600">
+                      {product.description || "Premium construction and elevated everyday styling."}
+                    </p>
+                    <span className="inline-flex items-center gap-2 text-sm font-semibold text-stone-900">
+                      Shop Now
+                      <ArrowRight size={16} />
                     </span>
                   </div>
-                  <p className="line-clamp-2 text-sm leading-6 text-stone-600">
-                    {product.description || "Premium construction and elevated everyday styling."}
-                  </p>
-                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-stone-900">
-                    Shop Now
-                    <ArrowRight size={16} />
-                  </span>
-                </div>
-              </button>
-            ))}
+                </button>
+              ))
+            )}
           </div>
         </div>
       </section>

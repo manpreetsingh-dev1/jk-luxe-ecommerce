@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
 
-const Women = () => <Navigate to="/shop?category=women" replace />;
+const Women = () => <Navigate to="/shop/women" replace />;
 
 export default Women;
